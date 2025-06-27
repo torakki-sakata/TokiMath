@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>トキマス TOKIMASU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ここにサイト説明を入れます">
+<link rel="stylesheet" href="css/style.css">
+<style>
+:root {
+  --header-bg: #2daaeb;
+  --header-color: #ffffff;
+}
+
+header {
+  background-color: var(--header-bg);
+  color: var(--header-color);
+}
+
+header a {
+  color: var(--header-color);
+  text-decoration: none;
+}
+</style>
+
+<script>
+  // ユーザー設定を読み込んでCSS変数に反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || '#2daaeb';
+    const savedText = localStorage.getItem('headerText') || '#ffffff';
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+  });
+</script>
+
+</head>
+
+</head>
+
+
+
+<body>
+
+<header>
+  <h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+  <ul>
+    <li><a href="about.html">当サイトについて</a></li>
+    <li id="ticket-count">🎫 チケット: <span id="ticket-number">0</span>枚</li>
+  </ul>
+</header>
+
+
+<div id="container">
+
+<main>
+
+<section>
+
+<h2>ゲーム<span>game</span></h2>
+
+<div class="list-container">
+
+<div class="list" data-link="hebi.html">
+  <figure><img src="images/sample/hebi.jpg" alt=""></figure>
+  <div class="text">
+    <h4>ヘビゲーム</h4>
+    <p>できるだけりんごを食べよう！</p>
+  </div>
+  <span class="icon"><img src="images/time10.png" alt=""></span>
+</div>
+
+
+<div class="list" data-link="tori.html">
+  <figure><img src="images/sample/tori.jpg" alt=""></figure>
+  <div class="text">
+    <h4>とりゲーム</h4>
+    <p>げきムズ！</p>
+  </div>
+  <span class="icon"><img src="images/time10.png" alt=""></span>
+</div>
+
+<div class="list" data-link="minesweeper.html">
+  <figure><img src="images/sample/minesweeper.jpg" alt=""></figure>
+  <div class="text">
+    <h4>マインスイーパー</h4>
+    <p>地雷をじょきょしよう！</p>
+  </div>
+  <span class="icon"><img src="images/time10.png" alt=""></span>
+</div>
+
+</div>
+<!--/.list-container-->
+
+</section>
+
+<!--ページの上部へ戻るボタン-->
+<div class="pagetop"><a href="#"><i class="fas fa-angle-double-up"></i></a></div>
+
+
+</main>
+
+<!--開閉ブロック-->
+<div id="menubar">
+
+<h3><a href="index.html">メイン</a></h3>
+
+<h3><a href="login.html">ログインボーナス</a></h3>
+
+<h3><a href="kaimono.html">かいもの</a></h3>
+
+<h3><a href="game.html">ゲーム</a></h3>
+
+<h3><a href="musicbox.html">音楽</a></h3>
+
+</ul>
+
+</div>
+<!--/#menubar-->
+
+</div>
+<!--/#container-->
+
+<!--/#footermenu-->
+
+<footer>
+<small>Copyright&copy; <a href="index.html">Sample Recipe Site</a> All Rights Reserved.</small>
+<span class="pr"><a href="https://template-party.com/" target="_blank">《Web Design:Template-Party》</a></span>
+</footer>
+
+<!--開閉ボタン（ハンバーガーアイコン）-->
+<div id="menubar_hdr">
+<span></span><span></span><span></span>
+</div>
+
+<!--jQueryの読み込み-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!--このテンプレート専用のスクリプト-->
+<script src="js/main.js"></script>
+<script>
+  console.log("👉 ページ読み込み:", location.href);
+  console.log("localStorage ticket (on load):", localStorage.getItem("ticket"));
+
+  window.addEventListener("beforeunload", () => {
+    console.log("👈 beforeunload, final ticket:", localStorage.getItem("ticket"));
+  });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  let ticket = parseInt(localStorage.getItem('ticket')) || 0;
+  const ticketDisplay = document.getElementById('ticket-number');
+  if (ticketDisplay) {
+    ticketDisplay.textContent = ticket;
+  }
+
+  const listItems = document.querySelectorAll('.list');
+
+  listItems.forEach(list => {
+    list.addEventListener('click', function () {
+      const link = list.getAttribute('data-link');
+      if (!link) return;
+
+      ticket = parseInt(localStorage.getItem('ticket')) || 0;
+
+      if (ticket <= 0) {
+        alert('チケットが足りないよ！');
+        return;
+      }
+
+      ticket -= 1;
+      localStorage.setItem('ticket', ticket);
+
+      if (ticketDisplay) {
+        ticketDisplay.textContent = ticket;
+      }
+
+      // 遷移
+      setTimeout(() => {
+        window.location.href = link;
+      }, 100);
+    });
+  });
+});
+
+</script>
+
+<script>
+  let inputBuffer = "";
+
+  document.addEventListener("keydown", function (e) {
+    // 英字キーだけに限定（英小文字）
+    if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+      inputBuffer += e.key.toLowerCase();
+
+      // 入力バッファが6文字を超えたら先頭を削除
+      if (inputBuffer.length > 10) {
+        inputBuffer = inputBuffer.slice(-10);
+      }
+
+      // "casino" が含まれていたらページ遷移
+      if (inputBuffer.includes("casino")) {
+        alert("隠しコマンド発動！カジノに移動します！");
+        window.location.href = "gamble.html";
+      }
+    }
+  });
+</script>
+
+
+</body>
+</html>

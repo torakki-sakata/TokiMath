@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>トキマス TOKIMASU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ここにサイト説明を入れます">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <style>
+:root {
+  --header-bg: #2daaeb;
+  --header-color: #ffffff;
+}
+
+header {
+  background-color: var(--header-bg);
+  color: var(--header-color);
+}
+
+header a {
+  color: var(--header-color);
+  text-decoration: none;
+}
+</style>
+
+<script>
+  // ユーザー設定を読み込んでCSS変数に反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || '#2daaeb';
+    const savedText = localStorage.getItem('headerText') || '#ffffff';
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+  });
+</script>
+
+</head>
+
+<body>
+
+<header>
+  <h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+  <ul>
+    <li><a href="about.html">当サイトについて</a></li>
+  </ul>
+</header>
+
+<div id="container">
+
+<main>
+
+<!-- クイズをJavaScriptで動的に挿入 -->
+<div id="quiz-container"></div>
+
+<!-- 答え合わせボタン -->
+<section class="center-button">
+  <button onclick="checkAllAnswers()">まとめて答え合わせ</button>
+</section>
+
+<!-- スコア表示 -->
+<section id="scoreSection">
+  <h2>スコア</h2>
+  <p id="score">正解数：0 / 3</p>
+  <p id="coins">もらえたコイン：0</p>
+</section>
+
+<!-- 戻るボタン -->
+<section id="back-to-main" style="display:none; text-align:center; margin-top:20px;">
+  <a href="index.html">
+    <button>メインに戻る</button>
+  </a>
+</section>
+
+</main>
+
+
+  <!-- JavaScript -->
+<script>
+const questions = [];
+const patterns = [
+  {
+    // 例: 秒速30m → 分速何m？
+    generate: () => {
+      const value = getRandomMultiple(5, 10, 100); // 5の倍数
+      return {
+        question: `秒速${value}mは分速何mか？`,
+        answer: value * 60
+      };
+    }
+  },
+  {
+    // 例: 秒速10m → 時速何km？
+    generate: () => {
+      const value = getRandomMultiple(5, 5, 25); // 5の倍数
+      return {
+        question: `秒速${value}mは時速何kmか？`,
+        answer: value * 3.6
+      };
+    }
+  },
+  {
+    // 例: 時速36km → 秒速何m？
+    generate: () => {
+      const value = getRandomMultiple(5, 36, 90, 3.6); // 3.6で割り切れるように
+      return {
+        question: `時速${value}kmは秒速何mか？`,
+        answer: value / 3.6
+      };
+    }
+  }
+];
+
+// 指定の倍数の乱数を作る
+function getRandomMultiple(base, min, max, divisibleBy = 1) {
+  const multiples = [];
+  for (let i = min; i <= max; i += base) {
+    if (Number.isInteger(i / divisibleBy)) {
+      multiples.push(i);
+    }
+  }
+  return multiples[Math.floor(Math.random() * multiples.length)];
+}
+
+function generateQuestions() {
+  const container = document.getElementById("quiz-container");
+  container.innerHTML = "";
+  questions.length = 0;
+
+  for (let i = 0; i < 3; i++) {
+    const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+    const { question, answer } = pattern.generate();
+
+    const quizDiv = document.createElement("section");
+    quizDiv.className = "quiz";
+    quizDiv.innerHTML = `
+      <h2>問題 ${i + 1}</h2>
+      <div class="quiz-box">
+        <p class="question">${question}</p>
+        <input type="number" step="0.1" id="input-${i}" placeholder="こたえを入れてね">
+        <p class="result" id="result-${i}"></p>
+      </div>
+    `;
+    container.appendChild(quizDiv);
+
+    questions.push({ answer });
+  }
+}
+
+function checkAllAnswers() {
+  let score = 0;
+
+  for (let i = 0; i < 3; i++) {
+    const userInput = parseFloat(document.getElementById(`input-${i}`).value);
+    const result = document.getElementById(`result-${i}`);
+    const correct = questions[i].answer;
+
+    if (isNaN(userInput)) {
+      result.textContent = "数字を入れてください。";
+      result.style.color = "orange";
+    } else if (Math.abs(userInput - correct) < 0.1) {
+      result.textContent = "正解！";
+      result.style.color = "green";
+      score++;
+    } else {
+      const isInteger = Number.isInteger(correct);
+      result.textContent = `ちがうよ。正解は ${isInteger ? correct : '約 ' + correct.toFixed(1)} です。`;
+      result.style.color = "red";
+    }
+  }
+
+  const coins = score * 10;
+  let currentCoin = parseInt(localStorage.getItem('coin') || '0');
+  localStorage.setItem('coin', currentCoin + coins);
+
+  document.getElementById("score").textContent = `正解数：${score} / 3`;
+  document.getElementById("coins").textContent = `もらえたコイン：${coins}`;
+  document.getElementById("back-to-main").style.display = "block";
+}
+
+window.onload = generateQuestions;
+</script>
+
+
+</main>
+
+<!-- メニュー -->
+<div id="menubar">
+  <h3><a href="index.html">メイン</a></h3>
+  <h3><a href="login.html">ログインボーナス</a></h3>
+  <h3><a href="kaimono.html">かいもの</a></h3>
+  <h3><a href="game.html">ゲーム</a></h3>
+</div>
+
+</div>
+
+<footer>
+  <small>Copyright&copy; <a href="index.html">Sample Recipe Site</a> All Rights Reserved.</small>
+  <span class="pr"><a href="https://template-party.com/" target="_blank">《Web Design:Template-Party》</a></span>
+</footer>
+
+<!-- ハンバーガーアイコン -->
+<div id="menubar_hdr">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- テンプレート用スクリプト -->
+<script src="js/main.js"></script>
+
+<!-- ページ上部へ -->
+<div class="pagetop"><a href="#"><i class="fas fa-angle-double-up"></i></a></div>
+
+</body>
+</html>

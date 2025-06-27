@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>トキマス TOKIMASU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ここにサイト説明を入れます">
+  <link rel="stylesheet" href="css/style.css">
+ 
+ <style>
+:root {
+  --header-bg: #2daaeb;
+  --header-color: #ffffff;
+}
+
+header {
+  background-color: var(--header-bg);
+  color: var(--header-color);
+}
+
+header a {
+  color: var(--header-color);
+  text-decoration: none;
+}
+</style>
+
+<script>
+  // ユーザー設定を読み込んでCSS変数に反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || '#2daaeb';
+    const savedText = localStorage.getItem('headerText') || '#ffffff';
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+  });
+</script>
+
+</head>
+
+<body>
+
+<header>
+  <h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+  <ul>
+    <li><a href="about.html">当サイトについて</a></li>
+  </ul>
+</header>
+
+<div id="container">
+
+<main>
+
+<section class="quiz">
+  <h2>問題１</h2>
+  <div class="quiz-box">
+    <p class="question"></p>
+    <input type="number" placeholder="こたえを入れてね">
+    <p class="result"></p>
+  </div>
+</section>
+
+<section class="quiz">
+  <h2>問題２</h2>
+  <div class="quiz-box">
+    <p class="question"></p>
+    <input type="number" placeholder="こたえを入れてね">
+    <p class="result"></p>
+  </div>
+</section>
+
+<section class="quiz">
+  <h2>問題３</h2>
+  <div class="quiz-box">
+    <p class="question"></p>
+    <input type="number" placeholder="こたえを入れてね">
+    <p class="result"></p>
+  </div>
+</section>
+
+
+  <!-- まとめて答え合わせボタン -->
+<section class="center-button">
+  <button onclick="checkAllAnswers()">まとめて答え合わせ</button>
+</section>
+
+
+  <!-- スコア表示 -->
+<section>
+  <h2>スコア</h2>
+  <p id="score">正解数：0 / 3</p>
+  <p id="coins">もらえたコイン：0</p>
+</section>
+
+<section id="back-to-main" style="display:none; text-align:center; margin-top:20px;">
+  <a href="index.html">
+    <button>メインに戻る</button>
+  </a>
+</section>
+
+
+  <!-- JavaScript -->
+<script>
+  let problems = [];
+  let score = 0;
+  let coins = 0;
+
+  function getRandomMultipleOfFive(min, max) {
+    const multiples = [];
+    for (let i = min; i <= max; i += 5) {
+      multiples.push(i);
+    }
+    return multiples[Math.floor(Math.random() * multiples.length)];
+  }
+
+  function generateProblems() {
+    const sections = document.querySelectorAll("section.quiz");
+    problems = [];
+
+    sections.forEach((section) => {
+      const speed = getRandomMultipleOfFive(10, 100);
+      const time = Math.floor(Math.random() * 10) + 1;
+      const distance = speed * time;
+      const correctTime = distance / speed;
+
+      problems.push({ distance, speed, answer: correctTime });
+
+      const question = section.querySelector(".question");
+      question.textContent = `問題：${distance}kmの道のりを時速${speed}kmで走る車は、進むのに何時間かかるか求めなさい。`;
+
+      const result = section.querySelector(".result");
+      result.textContent = "";
+      const input = section.querySelector("input");
+      input.value = "";
+      input.setAttribute("step", "0.1");
+    });
+  }
+
+  function checkAllAnswers() {
+    score = 0;
+    const sections = document.querySelectorAll("section.quiz");
+
+    sections.forEach((section, i) => {
+      const input = section.querySelector("input");
+      const result = section.querySelector(".result");
+      const userAnswer = parseFloat(input.value);
+
+      if (isNaN(userAnswer)) {
+        result.textContent = "数字を入れてください。";
+        result.style.color = "orange";
+      } else if (Math.abs(userAnswer - problems[i].answer) < 0.1) {
+        result.textContent = "正解！";
+        result.style.color = "green";
+        score++;
+      } else {
+        result.textContent = `ちがうよ。正解は ${problems[i].answer} 時間 です。`;
+        result.style.color = "red";
+      }
+    });
+
+    coins = score * 10;
+    let currentCoin = parseInt(localStorage.getItem('coin') || '0');
+    let newCoinAmount = currentCoin + coins;
+    localStorage.setItem('coin', newCoinAmount);
+
+    document.getElementById("score").textContent = `正解数：${score} / 3`;
+    document.getElementById("coins").textContent = `もらえたコイン：${coins}`;
+    document.getElementById("back-to-main").style.display = "block";
+  }
+
+  window.onload = generateProblems;
+</script>
+
+
+
+
+
+</main>
+
+<!-- メニュー -->
+<div id="menubar">
+  <h3><a href="index.html">メイン</a></h3>
+  <h3><a href="login.html">ログインボーナス</a></h3>
+  <h3><a href="kaimono.html">かいもの</a></h3>
+  <h3><a href="game.html">ゲーム</a></h3>
+</div>
+
+</div>
+
+<footer>
+  <small>Copyright&copy; <a href="index.html">Sample Recipe Site</a> All Rights Reserved.</small>
+  <span class="pr"><a href="https://template-party.com/" target="_blank">《Web Design:Template-Party》</a></span>
+</footer>
+
+<!-- ハンバーガーアイコン -->
+<div id="menubar_hdr">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- テンプレート用スクリプト -->
+<script src="js/main.js"></script>
+
+<!-- ページ上部へ -->
+<div class="pagetop"><a href="#"><i class="fas fa-angle-double-up"></i></a></div>
+
+</body>
+</html>

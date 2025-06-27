@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Snake Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        h1 {
+            margin: 0 0 15px 0;
+            font-size: clamp(1.8em, 5vw, 2.5em);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .game-container {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        #gameCanvas {
+            border: 3px solid #fff;
+            border-radius: 10px;
+            background: #000;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            width: 100%;
+            height: auto;
+            display: block;
+            touch-action: none;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            font-size: clamp(1em, 3vw, 1.2em);
+            font-weight: bold;
+        }
+
+        .continues-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: clamp(0.9em, 2.5vw, 1em);
+        }
+
+        .life-icon {
+            color: #4CAF50;
+            font-size: 1.2em;
+        }
+
+        .controls {
+            margin-top: 15px;
+            text-align: center;
+            font-size: clamp(0.8em, 2.5vw, 0.9em);
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .mobile-controls {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .control-pad {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: manipulation;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .control-btn:active {
+            background: rgba(255,255,255,0.4);
+            transform: scale(0.95);
+        }
+
+        .control-btn.up { grid-column: 2; grid-row: 1; }
+        .control-btn.left { grid-column: 1; grid-row: 2; }
+        .control-btn.right { grid-column: 3; grid-row: 2; }
+        .control-btn.down { grid-column: 2; grid-row: 3; }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: clamp(1.2em, 4vw, 1.5em);
+            display: none;
+            z-index: 100;
+            width: 90%;
+            max-width: 300px;
+        }
+
+        .continue-timer {
+            font-size: 0.8em;
+            margin: 15px 0;
+            color: #FFB74D;
+        }
+
+        .restart-btn {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background: #FF5252;
+        }
+        
+        .restart-btn.continue-btn {
+            background: #FF9800;
+        }
+
+        .restart-btn.continue-btn:hover {
+            background: #F57C00;
+        }
+
+        .swipe-hint {
+            display: none;
+            margin-top: 10px;
+            font-size: clamp(0.7em, 2vw, 0.8em);
+            opacity: 0.7;
+            text-align: center;
+        }
+
+        /* モバイル検出 */
+        @media (max-width: 768px), (pointer: coarse) {
+            .controls {
+                display: none;
+            }
+            
+            .mobile-controls {
+                display: block;
+            }
+            
+            .swipe-hint {
+                display: block;
+            }
+            
+            h1 {
+                margin-bottom: 10px;
+            }
+            
+            .game-container {
+                padding: 10px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            
+            .control-pad {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .control-btn {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Snake Game</h1>
+    
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        
+        <div class="info">
+            <div>スコア: <span id="score">0</span></div>
+            <div class="continues-display">
+                <span>残機:</span>
+                <span id="continuesDisplay">
+                    <span class="life-icon">❤️</span>
+                    <span class="life-icon">❤️</span>
+                    <span class="life-icon">❤️</span>
+                </span>
+            </div>
+            <div>最高スコア: <span id="highScore">0</span></div>
+        </div>
+        
+        <div class="controls">
+            矢印キー または WASD で操作
+        </div>
+        
+        <div class="mobile-controls">
+            <div class="control-pad">
+                <button class="control-btn up" data-direction="up">↑</button>
+                <button class="control-btn left" data-direction="left">←</button>
+                <button class="control-btn right" data-direction="right">→</button>
+                <button class="control-btn down" data-direction="down">↓</button>
+            </div>
+        </div>
+        
+        <div class="swipe-hint">
+            画面をスワイプして操作することもできます
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <div id="gameOverTitle">ゲームオーバー!</div>
+        <div style="font-size: 0.8em; margin: 10px 0;">スコア: <span id="finalScore">0</span></div>
+        <div class="continue-timer" id="continueTimer" style="display: none;"></div>
+        <div id="gameOverButtons">
+            <button class="restart-btn continue-btn" id="continueBtn" onclick="continueGame()" style="display: none;">コンティニュー</button>
+        </div>
+        <section id="back-to-main" style="text-align:center; margin-top:15px;">
+            <a href="game.html">
+                <button class="restart-btn" style="background: #2196f3;">ゲーム画面に戻る</button>
+            </a>
+        </section>
+    </div>
+
+<script>
+  console.log("👉 ページ読み込み:", location.href);
+  console.log("localStorage ticket (on load):", localStorage.getItem("ticket"));
+
+  window.addEventListener("beforeunload", () => {
+    console.log("👈 beforeunload, final ticket:", localStorage.getItem("ticket"));
+  });
+</script>
+
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const continuesDisplayElement = document.getElementById('continuesDisplay');
+        const continueTimerElement = document.getElementById('continueTimer');
+        const continueBtnElement = document.getElementById('continueBtn');
+        const gameOverTitleElement = document.getElementById('gameOverTitle');
+
+        // キャンバスサイズを画面に合わせて調整
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            const maxSize = Math.min(container.clientWidth - 30, 400);
+            const size = Math.floor(maxSize / 20) * 20; // グリッドサイズの倍数に調整
+            
+            canvas.width = size;
+            canvas.height = size;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            
+            return size;
+        }
+
+        let canvasSize = resizeCanvas();
+        let gridSize = 20;
+        let tileCount = canvasSize / gridSize;
+
+        let snake = [{x: Math.floor(tileCount/2), y: Math.floor(tileCount/2)}];
+        let food = {};
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let highScore = 0;
+        let gameRunning = true;
+        let continues = 3;
+        let continueTimer = null;
+        let continueTimeLeft = 0;
+
+        // 初期ハイスコア表示
+        highScoreElement.textContent = highScore;
+        updateContinuesDisplay();
+
+        function updateContinuesDisplay() {
+            const hearts = [];
+            for (let i = 0; i < continues; i++) {
+                hearts.push('<span class="life-icon">❤️</span>');
+            }
+            for (let i = continues; i < 3; i++) {
+                hearts.push('<span class="life-icon" style="opacity: 0.3;">💔</span>');
+            }
+            continuesDisplayElement.innerHTML = hearts.join('');
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            
+            // 蛇の体と重ならないようにする
+            for (let segment of snake) {
+                if (segment.x === food.x && segment.y === food.y) {
+                    generateFood();
+                    return;
+                }
+            }
+        }
+
+        function drawGame() {
+            // 背景をクリア
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 蛇を描画
+            ctx.fillStyle = '#4CAF50';
+            for (let segment of snake) {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            }
+
+            // 頭を少し明るく
+            if (snake.length > 0) {
+                ctx.fillStyle = '#66BB6A';
+                ctx.fillRect(snake[0].x * gridSize, snake[0].y * gridSize, gridSize - 2, gridSize - 2);
+            }
+
+            // 餌を描画
+            ctx.fillStyle = '#FF5722';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        function moveSnake() {
+            if (!gameRunning || (dx === 0 && dy === 0)) return;
+
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+            // 壁との衝突判定
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+                return;
+            }
+
+            // 自分の体との衝突判定
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            // 餌を食べたかチェック
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.textContent = score;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            
+            if (continues > 0) {
+                // コンティニュー可能
+                gameOverTitleElement.textContent = 'ゲームオーバー!';
+                continueBtnElement.style.display = 'inline-block';
+                continueTimerElement.style.display = 'block';
+                
+                // 10秒のカウントダウン開始
+                continueTimeLeft = 10;
+                updateContinueTimer();
+                continueTimer = setInterval(() => {
+                    continueTimeLeft--;
+                    updateContinueTimer();
+                    
+                    if (continueTimeLeft <= 0) {
+                        clearInterval(continueTimer);
+                        // 時間切れで完全ゲームオーバー
+                        finalGameOver();
+                    }
+                }, 1000);
+            } else {
+                // コンティニュー不可（完全ゲームオーバー）
+                finalGameOver();
+            }
+            
+            finalScoreElement.textContent = score;
+            gameOverElement.style.display = 'block';
+        }
+
+        function updateContinueTimer() {
+            continueTimerElement.textContent = `コンティニューまで: ${continueTimeLeft}秒`;
+        }
+
+        function finalGameOver() {
+            gameOverTitleElement.textContent = 'ゲームオーバー!';
+            continueBtnElement.style.display = 'none';
+            continueTimerElement.style.display = 'none';
+            
+            if (continueTimer) {
+                clearInterval(continueTimer);
+                continueTimer = null;
+            }
+            
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = highScore;
+            }
+        }
+
+        function continueGame() {
+            if (continues <= 0) return;
+            
+            continues--;
+            updateContinuesDisplay();
+            
+            if (continueTimer) {
+                clearInterval(continueTimer);
+                continueTimer = null;
+            }
+            
+            // 蛇を初期位置に戻す（スコアは維持）
+            snake = [{x: Math.floor(tileCount/2), y: Math.floor(tileCount/2)}];
+            dx = 0;
+            dy = 0;
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            generateFood();
+        }
+
+        function restartGame() {
+            if (continueTimer) {
+                clearInterval(continueTimer);
+                continueTimer = null;
+            }
+            
+            snake = [{x: Math.floor(tileCount/2), y: Math.floor(tileCount/2)}];
+            dx = 0;
+            dy = 0;
+            score = 0;
+            continues = 3;
+            scoreElement.textContent = score;
+            updateContinuesDisplay();
+            gameRunning = true;
+            gameOverElement.style.display = 'none';
+            generateFood();
+        }
+
+        function gameLoop() {
+            moveSnake();
+            drawGame();
+        }
+
+        function changeDirection(newDx, newDy) {
+            if (!gameRunning) return;
+            
+            // 逆方向への移動を防ぐ
+            if ((dx === 1 && newDx === -1) || (dx === -1 && newDx === 1) ||
+                (dy === 1 && newDy === -1) || (dy === -1 && newDy === 1)) {
+                return;
+            }
+            
+            dx = newDx;
+            dy = newDy;
+        }
+
+        // キーボード入力処理
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            const LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
+            const A = 65, W = 87, D = 68, S = 83;
+
+            switch(e.keyCode) {
+                case LEFT:
+                case A:
+                    changeDirection(-1, 0);
+                    e.preventDefault();
+                    break;
+                case UP:
+                case W:
+                    changeDirection(0, -1);
+                    e.preventDefault();
+                    break;
+                case RIGHT:
+                case D:
+                    changeDirection(1, 0);
+                    e.preventDefault();
+                    break;
+                case DOWN:
+                case S:
+                    changeDirection(0, 1);
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        // タッチ操作（ボタン）
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const direction = btn.dataset.direction;
+                
+                switch(direction) {
+                    case 'up':
+                        changeDirection(0, -1);
+                        break;
+                    case 'down':
+                        changeDirection(0, 1);
+                        break;
+                    case 'left':
+                        changeDirection(-1, 0);
+                        break;
+                    case 'right':
+                        changeDirection(1, 0);
+                        break;
+                }
+            });
+        });
+
+        // スワイプ操作
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, { passive: false });
+
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const minSwipeDistance = 30;
+
+            if (Math.abs(deltaX) < minSwipeDistance && Math.abs(deltaY) < minSwipeDistance) {
+                return;
+            }
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // 横方向のスワイプ
+                if (deltaX > 0) {
+                    changeDirection(1, 0); // 右
+                } else {
+                    changeDirection(-1, 0); // 左
+                }
+            } else {
+                // 縦方向のスワイプ
+                if (deltaY > 0) {
+                    changeDirection(0, 1); // 下
+                } else {
+                    changeDirection(0, -1); // 上
+                }
+            }
+        }
+
+        // 画面リサイズ対応
+        window.addEventListener('resize', () => {
+            const newSize = resizeCanvas();
+            if (newSize !== canvasSize) {
+                canvasSize = newSize;
+                tileCount = canvasSize / gridSize;
+                // ゲームをリセット（蛇や餌の位置が画面外になる可能性があるため）
+                restartGame();
+            }
+        });
+
+        // スクロール防止
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // ゲーム初期化
+        generateFood();
+        setInterval(gameLoop, 150);
+    </script>
+</body>
+</html>

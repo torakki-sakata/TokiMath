@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パックマンゲーム</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .game-container {
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #00f;
+            background: #000;
+        }
+        .score {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        .instructions {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .game-over {
+            color: #f00;
+            font-size: 32px;
+            margin: 20px 0;
+        }
+        .game-clear {
+            color: #0f0;
+            font-size: 32px;
+            margin: 20px 0;
+        }
+        .restart-btn {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .restart-btn:hover {
+            background: #45a049;
+        }
+        .blue-btn {
+            background: #2196F3;
+        }
+        .blue-btn:hover {
+            background: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">スコア: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="600" height="440"></canvas>
+        <div class="instructions">
+            矢印キーで移動 • ドットを集めよう • 敵から逃げろ！
+        </div>
+        <div id="gameOver" class="game-over" style="display: none;">
+            ゲームオーバー！<br>
+            <button class="restart-btn" onclick="restartGame()">もう一度プレイ</button>
+            <button class="restart-btn blue-btn" onclick="goToMain()">ゲームに戻る</button>
+        </div>
+        <div id="gameClear" class="game-clear" style="display: none;">
+            ステージクリア！<br>
+            おめでとうございます！<br>
+            <button class="restart-btn" onclick="restartGame()">もう一度プレイ</button>
+            <button class="restart-btn blue-btn" onclick="goToMain()">ゲームに戻る</button>
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="restart-btn" onclick="restartGame()">リスタート</button>
+            <button class="restart-btn blue-btn" onclick="goToMain()">ゲームに戻る</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameOverElement = document.getElementById('gameOver');
+        const gameClearElement = document.getElementById('gameClear');
+
+        const CELL_SIZE = 20;
+        const ROWS = 22;
+        const COLS = 30;
+
+        // ゲーム状態
+        let gameState = {
+            running: true,
+            score: 0,
+            totalDots: 0
+        };
+
+        // マップの原本（リセット用）
+        const originalMaze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,1,0,0,0,0,0,0,1,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,1,2,1,1,0,1,0,0,0,0,0,0,0,0,1,0,1,1,2,1,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,1],
+            [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // 現在のマップ（ゲーム中に変更される）
+        let maze = [];
+
+        // パックマン
+        let pacman = {
+            x: 1,
+            y: 1,
+            direction: 0, // 0=右, 1=下, 2=左, 3=上
+            mouthOpen: true
+        };
+
+        // 敵
+        let ghosts = [
+            { x: 14, y: 10, direction: 0, color: '#f00' },
+            { x: 15, y: 10, direction: 1, color: '#f0f' },
+            { x: 14, y: 11, direction: 2, color: '#0ff' },
+            { x: 15, y: 11, direction: 3, color: '#ffa500' }
+        ];
+
+        // キー入力
+        let keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        function isValidMove(x, y) {
+            if (x < 0 || x >= COLS || y < 0 || y >= maze.length) return false;
+            return maze[y][x] !== 1;
+        }
+
+        function updatePacman() {
+            let newX = pacman.x;
+            let newY = pacman.y;
+            let newDirection = pacman.direction;
+
+            if (keys['ArrowRight']) {
+                newX = pacman.x + 1;
+                newDirection = 0;
+            } else if (keys['ArrowDown']) {
+                newY = pacman.y + 1;
+                newDirection = 1;
+            } else if (keys['ArrowLeft']) {
+                newX = pacman.x - 1;
+                newDirection = 2;
+            } else if (keys['ArrowUp']) {
+                newY = pacman.y - 1;
+                newDirection = 3;
+            }
+
+            if (isValidMove(newX, newY)) {
+                pacman.x = newX;
+                pacman.y = newY;
+                pacman.direction = newDirection;
+
+                // ドットを食べる
+                if (maze[pacman.y][pacman.x] === 2) {
+                    maze[pacman.y][pacman.x] = 0;
+                    gameState.score += 10;
+                    scoreElement.textContent = gameState.score;
+                }
+            }
+
+            // 口の開閉アニメーション
+            pacman.mouthOpen = !pacman.mouthOpen;
+        }
+
+        function updateGhosts() {
+            ghosts.forEach(ghost => {
+                // パックマンまでの距離を計算
+                const distanceToPacman = Math.abs(ghost.x - pacman.x) + Math.abs(ghost.y - pacman.y);
+                const CHASE_DISTANCE = 8; // この距離以内でパックマンを追いかける
+                
+                let possibleDirections = [];
+                
+                // 移動可能な方向をすべて調べる（逆方向は除く）
+                for (let dir = 0; dir < 4; dir++) {
+                    // 逆方向を計算（戻る方向）
+                    const oppositeDirection = (ghost.direction + 2) % 4;
+                    
+                    let newX = ghost.x;
+                    let newY = ghost.y;
+                    
+                    switch (dir) {
+                        case 0: newX++; break; // 右
+                        case 1: newY++; break; // 下
+                        case 2: newX--; break; // 左
+                        case 3: newY--; break; // 上
+                    }
+                    
+                    if (isValidMove(newX, newY)) {
+                        possibleDirections.push({
+                            direction: dir,
+                            x: newX,
+                            y: newY,
+                            distance: Math.abs(newX - pacman.x) + Math.abs(newY - pacman.y),
+                            isOpposite: dir === oppositeDirection
+                        });
+                    }
+                }
+                
+                if (possibleDirections.length === 0) {
+                    return; // 移動不可能な場合はスキップ
+                }
+                
+                // 逆方向以外の選択肢を優先
+                const forwardDirections = possibleDirections.filter(d => !d.isOpposite);
+                const availableDirections = forwardDirections.length > 0 ? forwardDirections : possibleDirections;
+                
+                let chosenDirection;
+                
+                if (distanceToPacman <= CHASE_DISTANCE) {
+                    // パックマンが近くにいる場合は追いかける（80%の確率）
+                    if (Math.random() < 0.8) {
+                        // 最短距離の方向を選択（逆方向を除く）
+                        availableDirections.sort((a, b) => a.distance - b.distance);
+                        chosenDirection = availableDirections[0].direction;
+                    } else {
+                        // 20%の確率でランダムな方向（逆方向を除く）
+                        chosenDirection = availableDirections[Math.floor(Math.random() * availableDirections.length)].direction;
+                    }
+                } else {
+                    // パックマンが遠い場合は直進傾向
+                    const currentDirectionValid = availableDirections.find(d => d.direction === ghost.direction);
+                    
+                    if (currentDirectionValid && Math.random() < 0.85) {
+                        // 85%の確率で現在の方向を継続（直進）
+                        chosenDirection = ghost.direction;
+                    } else {
+                        // 15%の確率で方向転換（逆方向を除く）
+                        chosenDirection = availableDirections[Math.floor(Math.random() * availableDirections.length)].direction;
+                    }
+                }
+                
+                ghost.direction = chosenDirection;
+                
+                // 実際に移動
+                let newX = ghost.x;
+                let newY = ghost.y;
+
+                switch (ghost.direction) {
+                    case 0: newX++; break; // 右
+                    case 1: newY++; break; // 下
+                    case 2: newX--; break; // 左
+                    case 3: newY--; break; // 上
+                }
+
+                if (isValidMove(newX, newY)) {
+                    ghost.x = newX;
+                    ghost.y = newY;
+                } else {
+                    // 万が一移動できない場合は、可能な方向からランダム選択（逆方向除く）
+                    if (availableDirections.length > 0) {
+                        const randomChoice = availableDirections[Math.floor(Math.random() * availableDirections.length)];
+                        ghost.direction = randomChoice.direction;
+                        ghost.x = randomChoice.x;
+                        ghost.y = randomChoice.y;
+                    }
+                }
+            });
+        }
+
+        function checkCollisions() {
+            // 敵との衝突チェック
+            ghosts.forEach(ghost => {
+                if (ghost.x === pacman.x && ghost.y === pacman.y) {
+                    gameState.running = false;
+                    gameOverElement.style.display = 'block';
+                }
+            });
+            
+            // クリア条件チェック
+            let remainingDots = 0;
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (maze[y][x] === 2) {
+                        remainingDots++;
+                    }
+                }
+            }
+            
+            if (remainingDots === 0) {
+                gameState.running = false;
+                gameClearElement.style.display = 'block';
+            }
+        }
+
+        function drawMaze() {
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    const cellX = x * CELL_SIZE;
+                    const cellY = y * CELL_SIZE;
+
+                    if (maze[y][x] === 1) {
+                        // 壁
+                        ctx.fillStyle = '#00f';
+                        ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                    } else if (maze[y][x] === 2) {
+                        // ドット
+                        ctx.fillStyle = '#ff0';
+                        ctx.beginPath();
+                        ctx.arc(cellX + CELL_SIZE/2, cellY + CELL_SIZE/2, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function drawPacman() {
+            const x = pacman.x * CELL_SIZE + CELL_SIZE/2;
+            const y = pacman.y * CELL_SIZE + CELL_SIZE/2;
+            const radius = CELL_SIZE/2 - 2;
+
+            ctx.fillStyle = '#ff0';
+            ctx.beginPath();
+
+            if (pacman.mouthOpen) {
+                // 口を開けた状態
+                const startAngle = (pacman.direction * Math.PI/2) + Math.PI/6;
+                const endAngle = (pacman.direction * Math.PI/2) - Math.PI/6;
+                ctx.arc(x, y, radius, startAngle, endAngle);
+                ctx.lineTo(x, y);
+            } else {
+                // 口を閉じた状態（円）
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+            }
+            
+            ctx.fill();
+        }
+
+        function drawGhosts() {
+            ghosts.forEach(ghost => {
+                const x = ghost.x * CELL_SIZE + CELL_SIZE/2;
+                const y = ghost.y * CELL_SIZE + CELL_SIZE/2;
+                const radius = CELL_SIZE/2 - 2;
+
+                ctx.fillStyle = ghost.color;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 目
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(x - 4, y - 4, 2, 0, Math.PI * 2);
+                ctx.arc(x + 4, y - 4, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(x - 4, y - 4, 1, 0, Math.PI * 2);
+                ctx.arc(x + 4, y - 4, 1, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function gameLoop() {
+            if (!gameState.running) return;
+
+            // クリア
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 更新
+            updatePacman();
+            updateGhosts();
+            checkCollisions();
+
+            // 描画
+            drawMaze();
+            drawPacman();
+            drawGhosts();
+
+            setTimeout(gameLoop, 200);
+        }
+
+        function restartGame() {
+            // ゲーム状態をリセット
+            gameState.running = true;
+            gameState.score = 0;
+            scoreElement.textContent = '0';
+            gameOverElement.style.display = 'none';
+            gameClearElement.style.display = 'none';
+
+            // パックマンをリセット
+            pacman.x = 1;
+            pacman.y = 1;
+            pacman.direction = 0;
+            pacman.mouthOpen = true;
+
+            // 敵をリセット
+            ghosts = [
+                { x: 14, y: 10, direction: 0, color: '#f00' },
+                { x: 15, y: 10, direction: 1, color: '#f0f' },
+                { x: 14, y: 11, direction: 2, color: '#0ff' },
+                { x: 15, y: 11, direction: 3, color: '#ffa500' }
+            ];
+
+            // マップをリセット（原本から復元）
+            maze = originalMaze.map(row => [...row]);
+
+            // ゲームループ再開
+            gameLoop();
+        }
+
+        function goToMain() {
+            window.location.href = 'game.html';
+        }
+
+        // ゲーム初期化
+        function initializeGame() {
+            maze = originalMaze.map(row => [...row]);
+            gameLoop();
+        }
+
+        // ゲーム開始
+        initializeGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>トキマス TOKIMASU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ここにサイト説明を入れます">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+:root {
+  --header-bg: #2daaeb;
+  --header-color: #ffffff;
+}
+
+header {
+  background-color: var(--header-bg);
+  color: var(--header-color);
+}
+
+header a {
+  color: var(--header-color);
+  text-decoration: none;
+}
+</style>
+
+<script>
+  // ユーザー設定を読み込んでCSS変数に反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || '#2daaeb';
+    const savedText = localStorage.getItem('headerText') || '#ffffff';
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+  });
+</script>
+
+</head>
+
+<body>
+
+<header>
+  <h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+  <ul>
+  	<li id="coin-count">🪙コイン: 0枚</p>
+    <li><a href="about.html">当サイトについて</a></li>
+  </ul>
+</header>
+
+
+<div id="container">
+
+<main>
+
+<section>
+
+<h2>かいもの<span>Recipe</span></h2>
+
+<div class="list-container">
+
+
+    <div class="item">
+      <p>チケット 🎟️ 30コイン</p>
+      <button onclick="buyTicket(30)">買う</button>
+    </div>
+
+<div class="item">
+  <p>ミュージックチケット 🎶 10コイン</p>
+  <button onclick="buyMusicTicket(10)">買う</button>
+</div>
+
+<p id="message"></p>
+
+<hr>
+
+</div>
+<!--/.list-container-->
+
+</section>
+
+</main>
+
+<!--開閉ブロック-->
+<div id="menubar">
+
+<h3><a href="index.html">メイン</a></h3>
+
+<h3><a href="login.html">ログインボーナス</a></h3>
+
+<h3><a href="kaimono.html">かいもの</a></h3>
+
+<h3><a href="game.html">ゲーム</a></h3>
+
+<h3><a href="musicbox.html">音楽</a></h3>
+
+</div>
+<!--/#menubar-->
+
+</div>
+
+<footer>
+<small>Copyright&copy; <a href="index.html">Sample Recipe Site</a> All Rights Reserved.</small>
+<span class="pr"><a href="https://template-party.com/" target="_blank">《Web Design:Template-Party》</a></span>
+</footer>
+
+<!--開閉ボタン（ハンバーガーアイコン）-->
+<div id="menubar_hdr">
+<span></span><span></span><span></span>
+</div>
+
+<!--jQueryの読み込み-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!--このテンプレート専用のスクリプト-->
+<script src="js/main.js"></script>
+
+<script>
+function getCoin() {
+  return parseInt(localStorage.getItem('coin') || '0');
+}
+
+function setCoin(newAmount) {
+  localStorage.setItem('coin', newAmount);
+  document.getElementById('coin-count').textContent = "所持コイン: " + newAmount + "枚";
+}
+
+  // --- チケット ---
+  function getTicket() {
+    return parseInt(localStorage.getItem('ticket') || '0');
+  }
+
+  function setTicket(amount) {
+    localStorage.setItem('ticket', amount);
+    document.getElementById('ticket-count').textContent = "所持チケット: " + amount + "枚";
+  }
+
+  function addTicket(amount) {
+    setTicket(getTicket() + amount);
+  }
+  
+    function buyTicket(price) {
+    const currentCoin = getCoin();
+    const message = document.getElementById('message');
+
+    if (currentCoin >= price) {
+      setCoin(currentCoin - price);
+      addTicket(1);
+      message.textContent = "チケットを買いました！🎟️";
+      message.style.color = "green";
+    } else {
+      message.textContent = "コインが足りません";
+      message.style.color = "red";
+    }
+  }
+
+function buyItem(price, itemName) {
+  const currentCoin = getCoin();
+  const message = document.getElementById('message');
+
+  if (currentCoin >= price) {
+    const newCoin = currentCoin - price;
+    setCoin(newCoin);
+    message.textContent = itemName + " を買いました！🎉";
+    message.style.color = "green";
+  } else {
+    message.textContent = "コインが足りません";
+    message.style.color = "red";
+  }
+}
+
+
+// ページ読み込み時にコイン表示
+setCoin(getCoin());
+
+function getCoin() {
+  return parseInt(localStorage.getItem('coin') || '0');
+}
+
+function setCoin(newAmount) {
+  localStorage.setItem('coin', newAmount);
+  document.getElementById('coin-count').textContent = "🪙コイン: " + newAmount + "枚";
+}
+
+function addCoin(amount) {
+  const newCoin = getCoin() + amount;
+  setCoin(newCoin);
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  const currentCoin = getCoin();
+  setCoin(currentCoin);
+  updateMusicTicketDisplay();
+});
+
+// --- ミュージックチケット管理 ---
+function getMusicTicket() {
+  return parseInt(localStorage.getItem('musicTickets') || '0');
+}
+
+function setMusicTicket(amount) {
+  localStorage.setItem('musicTickets', amount);
+  updateMusicTicketDisplay();
+}
+
+function addMusicTicket(amount) {
+  setMusicTicket(getMusicTicket() + amount);
+}
+
+function updateMusicTicketDisplay() {
+  document.getElementById('music-ticket-count').textContent = 
+    "ミュージックチケット: " + getMusicTicket() + "枚";
+}
+
+// --- 購入処理（ミュージックチケット用） ---
+function buyMusicTicket(price) {
+  const currentCoin = getCoin();
+  const message = document.getElementById('message');
+
+  if (currentCoin >= price) {
+    setCoin(currentCoin - price);
+    addMusicTicket(1);
+    message.textContent = "ミュージックチケットを買いました！🎶";
+    message.style.color = "green";
+  } else {
+    message.textContent = "コインが足りません";
+    message.style.color = "red";
+  }
+}
+
+
+</script>
+
+
+<!--ページの上部へ戻るボタン-->
+<div class="pagetop"><a href="#"><i class="fas fa-angle-double-up"></i></a></div>
+
+</body>
+</html>

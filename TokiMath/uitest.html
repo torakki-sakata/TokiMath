@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>トキマス TOKIMASU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ここにサイト説明を入れます">
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+  <style>
+    :root {
+      --header-bg: #2daaeb;
+      --header-color: #ffffff;
+    }
+
+    header {
+      background-color: var(--header-bg);
+      color: var(--header-color);
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+
+    header a {
+      color: var(--header-color);
+      text-decoration: none;
+    }
+
+    header #logo {
+      margin: 0;
+      line-height: 0;
+      width: 300px;
+      margin-left: 40px;
+    }
+
+    header ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+    }
+
+    header ul a {
+      margin-left: 2em;
+    }
+
+    #editor {
+      margin: 20px;
+      padding: 10px;
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      width: 300px;
+    }
+
+    #editor button {
+      margin-right: 10px;
+    }
+    
+    #menubar {
+  display: block;
+  padding: 20px;
+  background: #ffffff;
+  border-top: 1px solid #ccc;
+}
+
+  </style>
+</head>
+<body>
+
+
+<header>
+<h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+<ul>
+<li><a href="about.html">当サイトについて</a></li>
+</ul>
+</header>
+
+<!--開閉ブロック-->
+<div id="menubar">
+
+<h3><a href="index.html">メイン</a></h3>
+
+<h3><a href="login.html">ログインボーナス</a></h3>
+
+<h3><a href="kaimono.html">かいもの</a></h3>
+
+<h3><a href="game.html">ゲーム</a></h3>
+
+<ul class="submenu btn">
+<li><a href="about.html">当サイトについて</a></li>
+</ul>
+
+</div>
+
+<div id="editor">
+  <h3>ヘッダーのスタイル編集</h3>
+  <label>背景色: <input type="color" id="bgColor"></label><br><br>
+  <label>文字色: <input type="color" id="textColor"></label><br><br>
+  <button onclick="applyStyles()">適用</button>
+  <button onclick="resetStyles()">リセット</button>
+</div>
+
+<script>
+  const defaultBg = '#2daaeb';
+  const defaultText = '#ffffff';
+
+  // ページ読み込み時にlocalStorageから読み込んで反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || defaultBg;
+    const savedText = localStorage.getItem('headerText') || defaultText;
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+    document.getElementById('bgColor').value = savedBg;
+    document.getElementById('textColor').value = savedText;
+  });
+
+  // スタイルを適用＆保存
+  function applyStyles() {
+    const bg = document.getElementById('bgColor').value;
+    const text = document.getElementById('textColor').value;
+
+    document.documentElement.style.setProperty('--header-bg', bg);
+    document.documentElement.style.setProperty('--header-color', text);
+
+    localStorage.setItem('headerBg', bg);
+    localStorage.setItem('headerText', text);
+  }
+
+  // スタイルを初期化
+  function resetStyles() {
+    localStorage.removeItem('headerBg');
+    localStorage.removeItem('headerText');
+
+    document.documentElement.style.setProperty('--header-bg', defaultBg);
+    document.documentElement.style.setProperty('--header-color', defaultText);
+
+    document.getElementById('bgColor').value = defaultBg;
+    document.getElementById('textColor').value = defaultText;
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>トキマス TOKIMASU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ここにサイト説明を入れます">
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+:root {
+  --header-bg: #2daaeb;
+  --header-color: #ffffff;
+}
+
+header {
+  background-color: var(--header-bg);
+  color: var(--header-color);
+}
+
+header a {
+  color: var(--header-color);
+  text-decoration: none;
+}
+</style>
+
+<script>
+  // ユーザー設定を読み込んでCSS変数に反映
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('headerBg') || '#2daaeb';
+    const savedText = localStorage.getItem('headerText') || '#ffffff';
+
+    document.documentElement.style.setProperty('--header-bg', savedBg);
+    document.documentElement.style.setProperty('--header-color', savedText);
+  });
+</script>
+
+</head>
+
+<body>
+
+<header>
+  <h1 id="logo"><a href="index.html"><img src="images/logo.png" alt="Sample Recipe Site"></a></h1>
+  <ul>
+    <li><a href="about.html">当サイトについて</a></li>
+    <li id="header-coin">🪙 コイン: <span id="coin-header">0</span>枚</li>
+  </ul>
+</header>
+
+<div id="container">
+
+<main>
+
+<section>
+
+<h2>ログインボーナス<span>Login Bonus</span></h2>
+
+<div class="list-container">
+
+</div>
+
+</section>
+
+<section id="login-bonus">
+
+  <p id="bonus-message">読み込み中...</p>
+  <p id="coin-count">所持コイン: 0枚</p>
+</section>
+
+
+<script>
+function getTodayDateString() {
+  const today = new Date();
+  return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+}
+
+function getCoin() {
+  return parseInt(localStorage.getItem('coin') || '0');
+}
+
+  function setCoin(newAmount) {
+    localStorage.setItem('coin', newAmount);
+    document.getElementById('coin-count').textContent = "所持コイン: " + newAmount + "枚";
+    const headerCoin = document.getElementById('coin-header');
+    if (headerCoin) {
+      headerCoin.textContent = newAmount;
+    }
+  }
+
+function checkLoginBonus() {
+  const today = getTodayDateString();
+  const lastBonusDate = localStorage.getItem('lastLoginBonusDate');
+  const messageElement = document.getElementById('bonus-message');
+
+  if (lastBonusDate !== today) {
+    // コインを増やす（例：10コイン）
+    const currentCoin = getCoin();
+    const newCoin = currentCoin + 10;
+    setCoin(newCoin);
+
+    // ボーナスメッセージ表示
+    messageElement.textContent = "ログインボーナス！⭐ 10コインをゲットしました！";
+    messageElement.style.color = "green";
+    
+    // 今日の日付を保存
+    localStorage.setItem('lastLoginBonusDate', today);
+  } else {
+    messageElement.textContent = "今日はもうログインボーナスをもらいました！また明日ね。";
+    messageElement.style.color = "gray";
+  }
+
+  // コイン数の初期表示
+  setCoin(getCoin());
+}
+
+
+// ページ読み込み時にチェック
+checkLoginBonus();
+</script>
+
+
+</main>
+
+<!--開閉ブロック-->
+<div id="menubar">
+
+<h3><a href="index.html">メイン</a></h3>
+
+<h3><a href="login.html">ログインボーナス</a></h3>
+
+<h3><a href="kaimono.html">かいもの</a></h3>
+
+<h3><a href="game.html">ゲーム</a></h3>
+
+<h3><a href="musicbox.html">音楽</a></h3>
+
+</ul>
+
+</div>
+<!--/#menubar-->
+
+</div>
+
+<!--/#footermenu-->
+
+<footer>
+<small>Copyright&copy; <a href="index.html">Sample Recipe Site</a> All Rights Reserved.</small>
+<span class="pr"><a href="https://template-party.com/" target="_blank">《Web Design:Template-Party》</a></span>
+</footer>
+
+<!--開閉ボタン（ハンバーガーアイコン）-->
+<div id="menubar_hdr">
+<span></span><span></span><span></span>
+</div>
+
+<!--jQueryの読み込み-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!--このテンプレート専用のスクリプト-->
+<script src="js/main.js"></script>
+
+<!--ページの上部へ戻るボタン-->
+<div class="pagetop"><a href="#"><i class="fas fa-angle-double-up"></i></a></div>
+
+</body>
+</html>

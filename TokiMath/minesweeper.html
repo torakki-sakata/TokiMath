@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マインスイーパー</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .menu-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            background: #555;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background: #bbb;
+            border: 2px outset #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            user-select: none;
+            transition: all 0.1s ease;
+        }
+
+        .cell:hover {
+            background: #ccc;
+        }
+
+        .cell.revealed {
+            background: #eee;
+            border: 1px inset #ccc;
+            cursor: default;
+        }
+
+        .cell.mine {
+            background: #ff4444;
+            color: white;
+        }
+
+        .cell.flagged {
+            background: #ffeb3b;
+            color: #d32f2f;
+        }
+
+        .cell.number-1 { color: #1976d2; }
+        .cell.number-2 { color: #388e3c; }
+        .cell.number-3 { color: #d32f2f; }
+        .cell.number-4 { color: #7b1fa2; }
+        .cell.number-5 { color: #689f38; }
+        .cell.number-6 { color: #0097a7; }
+        .cell.number-7 { color: #5d4037; }
+        .cell.number-8 { color: #424242; }
+
+        .game-over {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .win {
+            color: #4caf50;
+        }
+
+        .lose {
+            color: #f44336;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>💣 マインスイーパー 💣</h1>
+    
+    <div class="game-container">
+        <div class="game-info">
+            <div class="info-item">
+                💣 地雷: <span id="mine-count">10</span>
+            </div>
+            <div style="text-align: center; margin-bottom: 5px;">
+            <button class="menu-btn" onclick="window.location.href='game.html'">ゲームに戻る</button>
+        </div>
+            <div class="info-item">
+                ⏱️ 時間: <span id="timer">0</span>秒
+            </div>
+        </div>
+        
+        
+        
+        <div class="game-board" id="game-board"></div>
+        
+        <div class="game-over" id="game-over"></div>
+    </div>
+
+    <div class="instructions">
+        左クリック：セルを開く　｜　右クリック：旗を立てる/外す
+    </div>
+
+    <script>
+        let board = [];
+        let gameState = 'playing'; // 'playing', 'won', 'lost'
+        let mineCount = 10;
+        let flaggedCount = 0;
+        let revealedCount = 0;
+        let timer = 0;
+        let timerInterval;
+        let firstClick = true;
+
+        const ROWS = 10;
+        const COLS = 10;
+        const TOTAL_CELLS = ROWS * COLS;
+
+        function updateMineCount() {
+            document.getElementById('mine-count').textContent = mineCount - flaggedCount;
+        }
+
+        function initGame() {
+            board = [];
+            gameState = 'playing';
+            flaggedCount = 0;
+            revealedCount = 0;
+            timer = 0;
+            firstClick = true;
+            
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '0';
+            updateMineCount();
+            document.getElementById('game-over').textContent = '';
+            
+            createBoard();
+            renderBoard();
+        }
+
+        function createBoard() {
+            for (let row = 0; row < ROWS; row++) {
+                board[row] = [];
+                for (let col = 0; col < COLS; col++) {
+                    board[row][col] = {
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        neighborMines: 0
+                    };
+                }
+            }
+        }
+
+        function placeMines(firstClickRow, firstClickCol) {
+            let minesPlaced = 0;
+            while (minesPlaced < mineCount) {
+                const row = Math.floor(Math.random() * ROWS);
+                const col = Math.floor(Math.random() * COLS);
+                
+                // 最初にクリックしたセルとその周囲には地雷を置かない
+                if (!board[row][col].isMine && 
+                    !(Math.abs(row - firstClickRow) <= 1 && Math.abs(col - firstClickCol) <= 1)) {
+                    board[row][col].isMine = true;
+                    minesPlaced++;
+                }
+            }
+            
+            calculateNeighborMines();
+        }
+
+        function calculateNeighborMines() {
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    if (!board[row][col].isMine) {
+                        let count = 0;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                const newRow = row + dr;
+                                const newCol = col + dc;
+                                if (newRow >= 0 && newRow < ROWS && 
+                                    newCol >= 0 && newCol < COLS && 
+                                    board[newRow][newCol].isMine) {
+                                    count++;
+                                }
+                            }
+                        }
+                        board[row][col].neighborMines = count;
+                    }
+                }
+            }
+        }
+
+        function renderBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    const cellData = board[row][col];
+                    
+                    if (cellData.isFlagged) {
+                        cell.classList.add('flagged');
+                        cell.textContent = '🚩';
+                    } else if (cellData.isRevealed) {
+                        cell.classList.add('revealed');
+                        if (cellData.isMine) {
+                            cell.classList.add('mine');
+                            cell.textContent = '💣';
+                        } else if (cellData.neighborMines > 0) {
+                            cell.textContent = cellData.neighborMines;
+                            cell.classList.add(`number-${cellData.neighborMines}`);
+                        }
+                    }
+                    
+                    cell.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        handleCellClick(row, col);
+                    });
+                    
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        handleRightClick(row, col);
+                    });
+                    
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(row, col) {
+            if (gameState !== 'playing') return;
+            
+            const cell = board[row][col];
+            if (cell.isRevealed || cell.isFlagged) return;
+            
+            if (firstClick) {
+                firstClick = false;
+                placeMines(row, col);
+                startTimer();
+            }
+            
+            revealCell(row, col);
+            
+            if (cell.isMine) {
+                gameOver(false);
+            } else {
+                checkWin();
+            }
+            
+            renderBoard();
+        }
+
+        function handleRightClick(row, col) {
+            if (gameState !== 'playing') return;
+            
+            const cell = board[row][col];
+            if (cell.isRevealed) return;
+            
+            if (cell.isFlagged) {
+                cell.isFlagged = false;
+                flaggedCount--;
+            } else {
+                cell.isFlagged = true;
+                flaggedCount++;
+            }
+            
+            updateMineCount();
+            renderBoard();
+        }
+
+        function revealCell(row, col) {
+            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+            
+            const cell = board[row][col];
+            if (cell.isRevealed || cell.isFlagged) return;
+            
+            cell.isRevealed = true;
+            revealedCount++;
+            
+            // 周囲に地雷がない場合、隣接セルも自動的に開く
+            if (cell.neighborMines === 0 && !cell.isMine) {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        revealCell(row + dr, col + dc);
+                    }
+                }
+            }
+        }
+
+        function checkWin() {
+            if (revealedCount === TOTAL_CELLS - mineCount) {
+                gameOver(true);
+            }
+        }
+
+        function gameOver(won) {
+            gameState = won ? 'won' : 'lost';
+            clearInterval(timerInterval);
+            
+            const gameOverDiv = document.getElementById('game-over');
+            if (won) {
+                gameOverDiv.textContent = '🎉 おめでとうございます！勝利です！ 🎉';
+                gameOverDiv.className = 'game-over win';
+                // ゲームクリア時にindex.htmlに移動
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            } else {
+                gameOverDiv.textContent = '💥 ゲームオーバー！ 💥';
+                gameOverDiv.className = 'game-over lose';
+                
+                // すべての地雷を表示
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        if (board[row][col].isMine) {
+                            board[row][col].isRevealed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = timer;
+            }, 1000);
+        }
+
+        // ゲーム初期化
+        initGame();
+    </script>
+</body>
+</html>

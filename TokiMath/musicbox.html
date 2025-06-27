@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古典音楽館</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(45deg, #2c1810 0%, #1a0f0a 50%, #0d0704 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(101, 67, 33, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ナビゲーションボタン */
+        .nav-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.95) 0%, rgba(101, 67, 33, 0.95) 100%);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 12px 24px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-button::before {
+            content: '⬅';
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2c1810;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 16px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .nav-button:hover::before {
+            transform: translateX(-3px);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            padding-top: 80px; /* ナビゲーションボタンのスペースを確保 */
+        }
+
+        .music-hall {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.9) 0%, rgba(101, 67, 33, 0.85) 100%);
+            border: 3px solid #8b4513;
+            border-radius: 0;
+            box-shadow: 
+                inset 0 0 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(139, 69, 19, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.7);
+            max-width: 900px;
+            width: 95%;
+            padding: 50px 40px;
+            position: relative;
+        }
+
+        .music-hall::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(205, 133, 63, 0.3);
+            pointer-events: none;
+        }
+
+        .title {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            color: #d4af37;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #cd853f;
+            margin-bottom: 50px;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+
+        .composer-section {
+            margin-bottom: 60px;
+            border: 2px solid #8b4513;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        .composer-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #8b4513;
+            padding-bottom: 15px;
+        }
+
+        .composer-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            color: #d4af37;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .composer-years {
+            font-size: 1.1rem;
+            color: #cd853f;
+            font-style: italic;
+        }
+
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .work-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #8b4513;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .work-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .work-panel:hover::before {
+            left: 100%;
+        }
+
+        .work-panel:hover {
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .work-panel.playing {
+            border-color: #ffd700;
+            background: rgba(212, 175, 55, 0.15);
+            box-shadow: 
+                0 0 25px rgba(255, 215, 0, 0.6),
+                inset 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+
+        .work-content {
+            padding: 25px 20px;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .work-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #d4af37;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .work-subtitle {
+            font-size: 0.95rem;
+            color: #cd853f;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .work-panel .play-symbol {
+            font-size: 2rem;
+            color: #8b4513;
+            transition: all 0.3s ease;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .work-panel:hover .play-symbol {
+            color: #d4af37;
+            transform: scale(1.2);
+        }
+
+        .work-panel.playing .play-symbol {
+            color: #ffd700;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), 0 0 10px rgba(255, 215, 0, 0.5); }
+            to { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 215, 0, 0.8); }
+        }
+
+        .ornament {
+            position: absolute;
+            color: rgba(212, 175, 55, 0.2);
+            font-size: 4rem;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .ornament.top-left {
+            top: 20px;
+            left: 20px;
+            transform: rotate(-15deg);
+        }
+
+        .ornament.top-right {
+            top: 20px;
+            right: 20px;
+            transform: rotate(15deg);
+        }
+
+        .ornament.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            transform: rotate(15deg);
+        }
+
+        .ornament.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            transform: rotate(-15deg);
+        }
+
+        .era-info {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: rgba(205, 133, 63, 0.6);
+            font-style: italic;
+        }
+
+        /* チケット表示とメッセージ */
+        .ticket-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.95) 0%, rgba(101, 67, 33, 0.95) 100%);
+            border: 2px solid #d4af37;
+            color: #d4af37;
+            padding: 12px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+        }
+
+        .ticket-icon {
+            font-size: 1.2rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .ticket-count {
+            color: #ffd700;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .no-tickets {
+            color: #ff6b6b !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .message-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .message-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-box {
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.95) 0%, rgba(101, 67, 33, 0.95) 100%);
+            border: 3px solid #d4af37;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: #d4af37;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .message-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            color: #cd853f;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .message-button {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            border: 2px solid #8b4513;
+            color: #2c1810;
+            padding: 12px 30px;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-button:hover {
+            background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+        }
+
+        .work-panel.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .work-panel.disabled:hover {
+            border-color: #8b4513;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .work-panel.disabled .play-symbol {
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .works-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-button {
+                top: 10px;
+                left: 10px;
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .ticket-display {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .main-container {
+                padding-top: 70px;
+                padding-right: 20px;
+            }
+            
+            .title {
+                font-size: 2.2rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションボタン -->
+    <a href="index.html" class="nav-button">
+        <span>Main Menu</span>
+    </a>
+
+    <!-- チケット表示 -->
+    <div class="ticket-display" id="ticketDisplay">
+        <span class="ticket-icon">🎫</span>
+        <span>Tickets: </span>
+        <span class="ticket-count" id="ticketCount">0</span>
+    </div>
+
+    <!-- メッセージオーバーレイ -->
+    <div class="message-overlay" id="messageOverlay">
+        <div class="message-box">
+            <div class="message-title" id="messageTitle">No Tickets!</div>
+            <div class="message-text" id="messageText">
+                ミュージックチケットが不足しています。<br>
+                メインメニューでチケットを獲得してください。
+            </div>
+            <button class="message-button" onclick="closeMessage()">了解</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="music-hall">
+            <div class="ornament top-left">❦</div>
+            <div class="ornament top-right">❦</div>
+            <div class="ornament bottom-left">❦</div>
+            <div class="ornament bottom-right">❦</div>
+            
+            <h1 class="title">Musica Classica</h1>
+            <p class="subtitle">~ 古典音楽の殿堂 ~</p>
+            
+            <div class="composers-sections">
+                <!-- ショパン -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Frédéric Chopin</h2>
+                        <div class="composer-years">(1810-1849)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="ショパン" data-work="ノクターン" data-piece="Nocturne Op.9 No.2">
+                            <div class="work-content">
+                                <div class="work-title">Nocturne Op.9 No.2</div>
+                                <div class="work-subtitle">ノクターン第2番 変ホ長調</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="ショパン" data-work="英雄" data-piece="Polonaise Op.53 'Heroic'">
+                            <div class="work-content">
+                                <div class="work-title">Polonaise Op.53</div>
+                                <div class="work-subtitle">ポロネーズ「英雄」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="ショパン" data-work="別れの曲" data-piece="Étude Op.10 No.3 'Tristesse'">
+                            <div class="work-content">
+                                <div class="work-title">Étude Op.10 No.3</div>
+                                <div class="work-subtitle">練習曲「別れの曲」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- バッハ -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Johann Sebastian Bach</h2>
+                        <div class="composer-years">(1685-1750)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="バッハ" data-work="G線上のアリア" data-piece="gAria">
+                            <div class="work-content">
+                                <div class="work-title">Air on the G String</div>
+                                <div class="work-subtitle">管弦楽組曲第3番より</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ベートーヴェン -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Ludwig van Beethoven</h2>
+                        <div class="composer-years">(1770-1827)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="ベートーヴェン" data-work="運命" data-piece="SymphonyNo5">
+                            <div class="work-content">
+                                <div class="work-title">Symphony No.5</div>
+                                <div class="work-subtitle">交響曲第5番「運命」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="ベートーヴェン" data-work="月光" data-piece="Moonlight">
+                            <div class="work-content">
+                                <div class="work-title">Piano Sonata No.1</div>
+                                <div class="work-subtitle">ピアノソナタ「月光」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="ベートーヴェン" data-work="悲愴" data-piece="Piano Sonata No.8 'Grande Sonate pathetique'">
+                            <div class="work-content">
+                                <div class="work-title">Piano Sonata No.8</div>
+                                <div class="work-subtitle">ピアノソナタ「悲愴」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ドビュッシー -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Claude Debussy</h2>
+                        <div class="composer-years">(1862-1918)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="ドビュッシー" data-work="亜麻色の髪の乙女" data-piece="La Fille aux Cheveux de Lin">
+                            <div class="work-content">
+                                <div class="work-title">La Fille aux Cheveux de Lin</div>
+                                <div class="work-subtitle">前奏曲集第1巻「亜麻色の髪の乙女」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="ドビュッシー" data-work="月の光" data-piece="Moon">
+                            <div class="work-content">
+                                <div class="work-title">Clair de Lune</div>
+                                <div class="work-subtitle">ベルガマスク組曲「月の光」</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- モーツァルト -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Wolfgang Amadeus Mozart</h2>
+                        <div class="composer-years">(1756-1791)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="モーツァルト" data-work="アイネクライネ" data-piece="Eine kleine Nachtmusik">
+                            <div class="work-content">
+                                <div class="work-title">Eine kleine Nachtmusik</div>
+                                <div class="work-subtitle">セレナード第13番</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        
+                        <div class="work-panel" data-composer="モーツァルト" data-work="交響曲第25番" data-piece="Symphonym">
+                            <div class="work-content">
+                                <div class="work-title">SymphonyNo25</div>
+                                <div class="work-subtitle">交響曲第25番</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ヴィヴァルディ -->
+                <div class="composer-section">
+                    <div class="composer-header">
+                        <h2 class="composer-title">Antonio Lucio Vivaldi</h2>
+                        <div class="composer-years">(1678-1741)</div>
+                    </div>
+                    <div class="works-grid">
+                        <div class="work-panel" data-composer="ヴィヴァルディ" data-work="冬" data-piece="Winter">
+                            <div class="work-content">
+                                <div class="work-title">Four Seasons Op.8 "Winter"</div>
+                                <div class="work-subtitle">《四季》から 「冬」 第1楽章</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                        <div class="work-panel" data-composer="ヴィヴァルディ" data-work="春" data-piece="Spring">
+                            <div class="work-content">
+                                <div class="work-title">Four Seasons Op.8 "Spring"</div>
+                                <div class="work-subtitle">《四季》から 「春」 第1楽章</div>
+                                <div class="play-symbol">◆</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone.js/14.8.49/Tone.min.js"></script>
+
+    <!-- オーディオタグ -->
+    <audio id="audio-nocturne" src="audio/041-Chopin-Nocturne-No2.mp3"></audio>
+    <audio id="audio-heroic" src="audio/Chopin-Poronase-No6-Heroic-2019-AR.mp3"></audio>
+    <audio id="audio-tristesse" src="audio/Chopin-Etude-wakareno.mp3"></audio>
+    <audio id="audio-gAria" src="audio/J.S.Bach-Air-On-G-2019-AR.mp3"></audio>
+    <audio id="audio-SymphonyNo5" src="audio/Beethoven-Symphony-No5-1st-2019-AR2.mp3"></audio>
+    <audio id="audio-Moonlight" src="audio/Beethoven-MoonlightSonata-1.mp3"></audio>
+    <audio id="audio-Moon" src="audio/Debussy-clairdelune.mp3"></audio>
+    <audio id="audio-pathetique" src="audio/Beethoven-PianoSonata-No8-2nd-2020-AR.mp3"></audio>
+    <audio id="audio-winter" src="audio/Vivaldi-4Seasons-Winter-1st.mp3"></audio>
+    <audio id="audio-spring" src="audio/Vivaldi-4Seasons-Spring-1st.mp3"></audio>
+    <audio id="audio-Nachtmusik" src="audio/Mozart-EineKleine-1st.mp3"></audio>
+    <audio id="audio-SymphonyNo25" src="audio/Mozart-SymphonyNo25-1.mp3"></audio> 
+    <audio id="audio-debussy-linfille" src="audio/amairo.mp3"></audio>
+    <audio id="audio-debussy-clair" src="audio/Debussy-Clair-de-Lune.mp3"></audio>
+
+    <!-- スクリプト -->
+    <script>
+        // チケット管理
+        let musicTickets = 0;
+
+        // ページ読み込み時の初期化
+        function initializeTickets() {
+            const storedTickets = localStorage.getItem('musicTickets');
+            musicTickets = storedTickets ? parseInt(storedTickets) : 0;
+            updateTicketDisplay();
+            updatePanelStates();
+        }
+
+        // チケット表示の更新
+        function updateTicketDisplay() {
+            const ticketCountElement = document.getElementById('ticketCount');
+            const ticketDisplayElement = document.getElementById('ticketDisplay');
+            
+            ticketCountElement.textContent = musicTickets;
+            
+            if (musicTickets <= 0) {
+                ticketCountElement.classList.add('no-tickets');
+            } else {
+                ticketCountElement.classList.remove('no-tickets');
+            }
+        }
+
+        // パネルの状態更新
+        function updatePanelStates() {
+            const panels = document.querySelectorAll('.work-panel');
+            panels.forEach(panel => {
+                if (musicTickets <= 0) {
+                    panel.classList.add('disabled');
+                } else {
+                    panel.classList.remove('disabled');
+                }
+            });
+        }
+
+        // チケット消費
+        function consumeTicket() {
+            if (musicTickets > 0) {
+                musicTickets--;
+                localStorage.setItem('musicTickets', musicTickets.toString());
+                updateTicketDisplay();
+                updatePanelStates();
+                return true;
+            }
+            return false;
+        }
+
+        // メッセージ表示
+        function showMessage(title, text) {
+            document.getElementById('messageTitle').textContent = title;
+            document.getElementById('messageText').innerHTML = text;
+            document.getElementById('messageOverlay').classList.add('show');
+        }
+
+        // メッセージ閉じる
+        function closeMessage() {
+            document.getElementById('messageOverlay').classList.remove('show');
+        }
+
+        // チケット不足メッセージ
+        function showNoTicketsMessage() {
+            showMessage(
+                'チケット不足！',
+                'ミュージックチケットが不足しています。<br>かいものメニューでチケットを獲得してください。'
+            );
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // チケット初期化
+            initializeTickets();
+
+            const tracks = {
+                "Nocturne Op.9 No.2": document.getElementById('audio-nocturne'),
+                "Polonaise Op.53 'Heroic'": document.getElementById('audio-heroic'),
+                "Étude Op.10 No.3 'Tristesse'": document.getElementById('audio-tristesse'),
+                "gAria": document.getElementById('audio-gAria'),
+                "SymphonyNo5" : document.getElementById('audio-SymphonyNo5'),
+                "Moonlight": document.getElementById('audio-Moonlight'),
+                "Moon": document.getElementById('audio-Moon'),
+                "Piano Sonata No.8 'Grande Sonate pathetique'": document.getElementById('audio-pathetique'),
+                "Winter": document.getElementById('audio-winter'),
+                "Spring": document.getElementById('audio-spring'),
+                "Eine kleine Nachtmusik": document.getElementById('audio-Nachtmusik'),
+                "Symphonym": document.getElementById('audio-SymphonyNo25'),
+                "La Fille aux Cheveux de Lin": document.getElementById('audio-debussy-linfille'),
+                "Clair de Lune": document.getElementById('audio-debussy-clair')
+            };
+
+            const panels = document.querySelectorAll('.work-panel');
+
+            panels.forEach(panel => {
+                panel.addEventListener('click', () => {
+                    // 無効化されている場合は処理しない
+                    if (panel.classList.contains('disabled')) {
+                        showNoTicketsMessage();
+                        return;
+                    }
+
+                    // チケットを消費
+                    if (!consumeTicket()) {
+                        showNoTicketsMessage();
+                        return;
+                    }
+
+                    const pieceName = panel.dataset.piece;
+                    const composer = panel.dataset.composer;
+                    const work = panel.dataset.work;
+
+                    // 全ての音楽を停止
+                    Object.values(tracks).forEach(audio => {
+                        if (audio) {
+                            audio.pause();
+                            audio.currentTime = 0;
+                        }
+                    });
+
+                    // 選択された音楽を再生
+                    if (tracks[pieceName]) {
+                        tracks[pieceName].play().then(() => {
+                            // 再生成功メッセージを表示
+                            showPlayMessage(composer, work);
+                        }).catch(error => {
+                            console.log('Audio playback failed:', error);
+                        });
+                    }
+
+                    // 再生中のパネルの表示を更新
+                    panels.forEach(p => p.classList.remove('playing'));
+                    panel.classList.add('playing');
+                });
+            });
+
+            // メッセージオーバーレイのクリックで閉じる
+            document.getElementById('messageOverlay').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('messageOverlay')) {
+                    closeMessage();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
