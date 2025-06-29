@@ -139,7 +139,8 @@ function generateProblems() {
       const distance = speed * time;
       return {
         question: `${distance}kmの道のりを${time}時間で進むとき、速さは時速何kmか？`,
-        answer: speed
+        answer: speed,
+        unit: "km/h"
       };
     },
     // 距離 ÷ 速さ = 時間
@@ -149,7 +150,8 @@ function generateProblems() {
       const distance = speed * time;
       return {
         question: `${distance}kmの道のりを時速${speed}kmで進むとき、かかる時間は何時間か？`,
-        answer: time
+        answer: time,
+        unit: "時間"
       };
     },
     // 速さ × 時間 = 距離
@@ -159,7 +161,8 @@ function generateProblems() {
       const distance = speed * time;
       return {
         question: `時速${speed}kmで${time}時間進むとき、道のりは何kmか？`,
-        answer: distance
+        answer: distance,
+        unit: "km"
       };
     },
     // 秒速 → 時速（単位変換）
@@ -167,16 +170,17 @@ function generateProblems() {
       const spd = getRandomMultiple(5, 20, 10);
       return {
         question: `秒速${spd}mは時速何kmか？`,
-        answer: spd * 3.6
+        answer: spd * 3.6,
+        unit: "km/h"
       };
     }
   ];
 
   sections.forEach((section) => {
     const type = questionTypes[Math.floor(Math.random() * questionTypes.length)];
-    const { question, answer } = type();
+    const { question, answer , unit} = type();
 
-    problems.push({ answer });
+    problems.push({ answer , unit });
 
     section.querySelector(".question").textContent = "問題：" + question;
     section.querySelector(".result").textContent = "";
@@ -201,7 +205,7 @@ function checkAllAnswers() {
       result.style.color = "green";
       score++;
     } else {
-      result.textContent = `ちがうよ。正解は ${Number.isInteger(problems[i].answer) ? problems[i].answer : problems[i].answer.toFixed(1)} です。`;
+      result.textContent = `ちがうよ。正解は ${Number.isInteger(problems[i].answer) ? problems[i].answer : problems[i].answer.toFixed(1)}${problems[i].unit}です。`;
       result.style.color = "red";
     }
   });
