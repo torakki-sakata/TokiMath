@@ -66,11 +66,12 @@ header a {
 </section>
 
 <!-- 戻るボタン -->
-<section id="back-to-main" style="display:none; text-align:center; margin-top:20px;">
+<section class="center-button" id="back-to-main" style="display:none;">
   <a href="index.html">
     <button>メインに戻る</button>
   </a>
 </section>
+
 
 </main>
 
@@ -85,7 +86,8 @@ const patterns = [
       const value = getRandomMultiple(5, 10, 100); // 5の倍数
       return {
         question: `秒速${value}mは分速何mか？`,
-        answer: value * 60
+        answer: value * 60,
+        unit: "minute"
       };
     }
   },
@@ -95,7 +97,8 @@ const patterns = [
       const value = getRandomMultiple(5, 5, 25); // 5の倍数
       return {
         question: `秒速${value}mは時速何kmか？`,
-        answer: value * 3.6
+        answer: value * 3.6,
+        unit: "second"
       };
     }
   },
@@ -105,7 +108,8 @@ const patterns = [
       const value = getRandomMultiple(5, 36, 90, 3.6); // 3.6で割り切れるように
       return {
         question: `時速${value}kmは秒速何mか？`,
-        answer: value / 3.6
+        answer: value / 3.6,
+        unit: "hour"
       };
     }
   }
@@ -129,23 +133,24 @@ function generateQuestions() {
 
   for (let i = 0; i < 3; i++) {
     const pattern = patterns[Math.floor(Math.random() * patterns.length)];
-    const { question, answer } = pattern.generate();
+    const generated = pattern.generate(); // 1回だけ実行
 
     const quizDiv = document.createElement("section");
     quizDiv.className = "quiz";
     quizDiv.innerHTML = `
       <h2>問題 ${i + 1}</h2>
       <div class="quiz-box">
-        <p class="question">${question}</p>
+        <p class="question">${generated.question}</p>
         <input type="number" step="0.1" id="input-${i}" placeholder="こたえを入れてね">
         <p class="result" id="result-${i}"></p>
       </div>
     `;
     container.appendChild(quizDiv);
 
-    questions.push({ answer });
-  }
+    questions.push({ answer: generated.answer, unit: generated.unit });
+  } // ← ここが必要！
 }
+
 
 function checkAllAnswers() {
   let score = 0;
@@ -162,11 +167,23 @@ function checkAllAnswers() {
       result.textContent = "正解！";
       result.style.color = "green";
       score++;
-    } else {
-      const isInteger = Number.isInteger(correct);
-      result.textContent = `ちがうよ。正解は ${isInteger ? correct : '約 ' + correct.toFixed(1)} です。`;
-      result.style.color = "red";
-    }
+} else if (questions[i].unit == "minute") {
+  const isInteger = Number.isInteger(correct);
+  const displayAnswer = isInteger ? correct : correct.toFixed(1);
+  result.textContent = `ちがうよ。正解は 分速${displayAnswer}m です。`;
+  result.style.color = "red";
+} else if (questions[i].unit == "second") {
+  const isInteger = Number.isInteger(correct);
+  const displayAnswer = isInteger ? correct : correct.toFixed(1);
+  result.textContent = `ちがうよ。正解は 時速${displayAnswer}km です。`;
+  result.style.color = "red";
+} else if (questions[i].unit == "hour"){
+  const isInteger = Number.isInteger(correct);
+  const displayAnswer = isInteger ? correct : correct.toFixed(1);
+  result.textContent = `ちがうよ。正解は 秒速${displayAnswer}m です。`;
+  result.style.color = "red";
+}
+
   }
 
   const coins = score * 10;

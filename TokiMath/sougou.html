@@ -109,11 +109,12 @@ header a {
 </section>
 
 <!-- メインに戻るボタン -->
-<section id="back-to-main" style="display:none; text-align:center; margin-top:20px;">
+<section class="center-button" id="back-to-main" style="display:none;">
   <a href="index.html">
     <button>メインに戻る</button>
   </a>
 </section>
+
 
 <!-- JavaScript（出題ロジック） -->
 <script>
@@ -204,7 +205,10 @@ function checkAllAnswers() {
       result.textContent = "正解！";
       result.style.color = "green";
       score++;
-    } else {
+    } else if(problems[i].unit == "km/h"){
+    result.textContent = `ちがうよ。正解は 時速${Number.isInteger(problems[i].answer) ? problems[i].answer : problems[i].answer.toFixed(1)}kmです。`;
+    result.style.color = "red";
+    }else{
       result.textContent = `ちがうよ。正解は ${Number.isInteger(problems[i].answer) ? problems[i].answer : problems[i].answer.toFixed(1)}${problems[i].unit}です。`;
       result.style.color = "red";
     }
